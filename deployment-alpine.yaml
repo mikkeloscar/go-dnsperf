@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-dnsperf-alpine
+  labels:
+    application: go-dnsperf
+  annotations:
+    downscaler/exclude: "true"
+spec:
+  strategy:
+    type: Recreate
+  replicas: 5
+  selector:
+    matchLabels:
+      application: go-dnsperf
+      base: alpine
+  template:
+    metadata:
+      labels:
+        application: go-dnsperf
+        base: alpine
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: application
+                  operator: In
+                  values:
+                  - go-dnsperf
+              topologyKey: kubernetes.io/hostname
+      # dnsConfig:
+      #   options:
+      #     - name: ndots
+      #       value: "1"
+      containers:
+      - name: go-dnsperf
+        image: mikkeloscar/go-dnsperf:alpine-latest
+        imagePullPolicy: Always
+        env:
+        - name: GODEBUG
+          value: netdns=cgo
+        args:
+        - -names=example.org
+        - -rps=100
+        - -timeout=5s
+        - -enable-logging=true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 2000Mi
+          limits:
+            cpu: 100m
+            memory: 2000Mi
+      # nodeSelector:
+      #   dns-load-test: "true"

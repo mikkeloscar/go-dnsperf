@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-dnsperf-godns
+  labels:
+    application: go-dnsperf
+  annotations:
+    downscaler/exclude: "true"
+spec:
+  strategy:
+    type: Recreate
+  replicas: 5
+  selector:
+    matchLabels:
+      application: go-dnsperf
+      base: alpine
+  template:
+    metadata:
+      labels:
+        application: go-dnsperf
+        base: alpine
+    spec:
+      # dnsConfig:
+      #   options:
+      #     - name: ndots
+      #       value: "1"
+      containers:
+      - name: go-dnsperf
+        image: mikkeloscar/go-dnsperf:godns-latest
+        imagePullPolicy: Always
+        args:
+        - -names=example.org
+        - -rps=100
+        - -timeout=10s
+        - -enable-logging=true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 2000Mi
+          limits:
+            cpu: 100m
+            memory: 2000Mi
+      # nodeSelector:
+      #   dns-load-test: "true"

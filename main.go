@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net"
@@ -12,13 +13,17 @@ import (
 )
 
 var (
-	rps   int
-	names string
+	rps     int
+	names   string
+	logging bool
+	timeout time.Duration
 )
 
 func main() {
 	flag.IntVar(&rps, "rps", 10, "DNS loopups per second.")
 	flag.StringVar(&names, "names", "google.com", "Comma separated list of hostnames")
+	flag.BoolVar(&logging, "enable-logging", true, "Whether to enable logging or not")
+	flag.DurationVar(&timeout, "timeout", 1*time.Second, "Timeout for DNS queries")
 	flag.Parse()
 
 	hostNames := strings.Split(names, ",")
@@ -33,10 +38,15 @@ func main() {
 
 	i := 0
 
+	dnsResolver := &CustomResolver{
+		resolver: &net.Resolver{},
+		logging:  logging,
+	}
+
 	for {
 		select {
 		case <-ticker.C:
-			go lookup(hostNames[i])
+			go dnsResolver.Lookup(hostNames[i], timeout)
 		case <-sigs:
 			return
 		}
@@ -49,11 +59,21 @@ func main() {
 	}
 }
 
-func lookup(name string) {
-	names, err := net.LookupHost(name)
+type CustomResolver struct {
+	resolver *net.Resolver
+	logging  bool
+}
+
+func (r *CustomResolver) Lookup(name string, timeout time.Duration) {
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	names, err := r.resolver.LookupHost(ctx, name)
 	if err != nil {
-		log.Printf("[ERROR] %s", err)
+		if r.logging {
+			log.Printf("[ERROR] %s", err)
+		}
 		return
 	}
-	log.Printf("%s - %s", name, names)
+	if r.logging {
+		log.Printf("%s - %s", name, names)
+	}
 }
