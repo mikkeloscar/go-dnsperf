@@ -7,8 +7,8 @@ WORKDIR /go-dnsperf
 COPY . .
 RUN CGO_ENABLED=1 go build
 
-FROM alpine:3.9
+FROM registry.opensource.zalan.do/library/alpine-3.12:latest
 
-COPY --from=builder /go-dnsperf/go-dnsperf /go-dnsperf
+COPY --from=builder /go-dnsperf/build/go-dnsperf /go-dnsperf
 
 ENTRYPOINT ["/go-dnsperf"]

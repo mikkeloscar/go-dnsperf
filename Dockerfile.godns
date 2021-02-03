@@ -1,5 +1,5 @@
-FROM alpine:3.9
+FROM registry.opensource.zalan.do/library/alpine-3.12:latest
 
-ADD go-dnsperf /
+ADD build/go-dnsperf-godns /go-dnsperf
 
 ENTRYPOINT ["/go-dnsperf"]
