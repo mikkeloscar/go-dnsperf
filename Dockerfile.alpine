@@ -9,6 +9,6 @@ RUN CGO_ENABLED=1 go build
 
 FROM registry.opensource.zalan.do/library/alpine-3.12:latest
 
-COPY --from=builder /go-dnsperf/build/go-dnsperf /go-dnsperf
+COPY --from=builder /go-dnsperf/go-dnsperf /go-dnsperf
 
 ENTRYPOINT ["/go-dnsperf"]
