@@ -1,5 +1,7 @@
-FROM registry.opensource.zalan.do/library/alpine-3.12:latest
+FROM cgr.dev/chainguard/static:latest
 
-ADD build/go-dnsperf-godns /go-dnsperf
+ARG TARGETARCH
+
+ADD build/linux/${TARGETARCH}/go-dnsperf-godns /go-dnsperf
 
 ENTRYPOINT ["/go-dnsperf"]
